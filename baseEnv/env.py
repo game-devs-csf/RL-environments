@@ -23,14 +23,14 @@ class Env:
     def step(self, action):
         pass
 
-    def reset(self):
+    def reset(self, show_display = pygame.SHOWN):
         """
             Description:
                 Resets the environment to its initial state
         """
         pygame.init()
         pygame.display.set_caption(self.envName)
-        self.env = pygame.display.set_mode(self.window_size, pygame.HWSURFACE | pygame.DOUBLEBUF)
+        self.env = pygame.display.set_mode(self.window_size, pygame.HWSURFACE | pygame.DOUBLEBUF | show_display)
         self.running = True
 
     def render(self):

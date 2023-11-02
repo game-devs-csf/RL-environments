@@ -55,7 +55,7 @@ class CartpoleEnv(Env):
         self.reset()
 
     
-    def reset(self):
+    def reset(self, show_display = pygame.SHOWN):
         """
             Description:
                 Resets the environment to its initial state
@@ -63,7 +63,7 @@ class CartpoleEnv(Env):
             Returns:
                 state (tuple): The new state of the environment    
             """
-        super().reset()
+        super().reset(show_display)
 
         self.reward = 0
 
@@ -77,7 +77,7 @@ class CartpoleEnv(Env):
         poleAngle: -0.418 rad to 0.418 rad
         poleVelocity: -Inf to Inf
         """
-        self.state = (random.uniform(-0.05, 0.05) for _ in range(4))
+        self.state = tuple((random.uniform(-0.05, 0.05) for _ in range(4)))
 
         return self.state
 
@@ -131,7 +131,7 @@ class CartpoleEnv(Env):
             return self.state, reward, True
         
         # Check if the pole has fallen over 
-        if self.state[2] < -0.8 or self.state[2] > 0.8:
+        if self.state[2] < -0.42 or self.state[2] > 0.42:
             reward = 0
             return self.state, reward, True
         
