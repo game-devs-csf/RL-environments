@@ -15,12 +15,8 @@ sys.path.append(project_root)
 
 from cartPole.cartpole import CartpoleEnv
 
-# This function discretizes the observation space into buckets
-def discretize(obs, lower_bounds, upper_bounds, buckets):
-    ratios = [(ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i]) for i, ob in enumerate(obs)]
-    new_obs = [int(round((buckets[i] - 1) * ratios[i])) for i in range(len(obs))]
-    new_obs = [min(buckets[i] - 1, max(0, new_obs[i])) for i in range(len(obs))]
-    return tuple(new_obs)
+def discretize(obs, bins):
+    return tuple(np.digitize(ob, bin)-1 for ob, bin in zip(obs, bins))
 
 # Create an instance of the Cartpole environment
 env = CartpoleEnv("Cartpole")
@@ -28,24 +24,29 @@ env = CartpoleEnv("Cartpole")
 upper_bounds = [4.8, 3.4, 0.42, 3.4]
 lower_bounds = [-4.8, -3.4, -0.42, -3.4]
 
-buckets = (1, 1, 6, 5,)
+buckets = (
+    np.linspace(-4.8, 4.8, 5),
+    np.linspace(-3.4, 3.4, 5),
+    np.linspace(-0.42, 0.42, 18),
+    np.linspace(-3.4, 3.4, 18)
+)
 
-q_table = np.zeros(buckets + (len(env.action_space),))
+q_table = np.random.uniform(low=-1, high=1, size = tuple(len(bucket) for bucket in buckets) + (len(env.action_space),))
 
-episodes = 501
+episodes = 4001
 
 alpha = 0.1
-gamma = 0.9
+gamma = 0.99
 
 # exploration
 epsilon = 1.0
 min_epsilon = 0.1
 max_epsilon = 1.0
-decay = 0.01
+decay = 0.001
 
 for episode in range(episodes):
     
-    current_state = discretize(env.reset(pygame.HIDDEN), lower_bounds, upper_bounds, buckets)
+    current_state = discretize(env.reset(pygame.HIDDEN), buckets)
 
     total_reward = 0
 
@@ -62,10 +63,11 @@ for episode in range(episodes):
         
         observation, reward, done = env.step(action)
 
-        new_state = discretize(observation, lower_bounds, upper_bounds, buckets)
+        new_state = discretize(observation, buckets)
 
         total_reward += reward
         
+        #print(current_state, new_state)
         q_table [current_state][action] += alpha * (reward + gamma * np.max(q_table[new_state]) - q_table[current_state][action])
 
         current_state = new_state
@@ -78,24 +80,23 @@ for episode in range(episodes):
     if not episode % 100:
         print(f"Episode: {episode} | Reward: {total_reward} | Epsilon: {epsilon}")
 
-current_state = discretize(env.reset(), lower_bounds, upper_bounds, buckets)
+current_state = discretize(env.reset(), buckets)
 total_reward = 0
 
-while True:
+done = False
+while not done:
     env.render()
 
     action = np.argmax(q_table[current_state])
 
     observation, reward, done = env.step(action)
 
-    new_state = discretize(observation, lower_bounds, upper_bounds, buckets)
+    new_state = discretize(observation, buckets)
 
     total_reward += reward
 
     current_state = new_state
 
-    if done:
-        break
-
+print(f"Total reward: {total_reward}")
 # Close the environment
 env.close()
