@@ -47,6 +47,7 @@ def train_from_scratch():
     max_epsilon = 1.0
     decay = 0.01
 
+    print(f"Training model from scratch for {episodes - 1} episodes...")
     for episode in range(episodes):
         
         current_state = discretize(env.reset(pygame.HIDDEN), lower_bounds, upper_bounds, buckets)
@@ -82,13 +83,6 @@ def train_from_scratch():
         if not episode % 100:
             print(f"Episode: {episode} | Reward: {total_reward} | Epsilon: {epsilon}")
 
-    save = True if (input("Save model? [y/N]: ") in ("Y", "y") else False
-    if not save:
-        return q_table
-
-    mdl_file = input("Enter model file name: ")
-    np.save(mdl, q_table)
-
     return q_table
 
 
@@ -112,6 +106,7 @@ def watch_trained_model(mdl_q_table):
     current_state = discretize(env.reset(), lower_bounds, upper_bounds, buckets)
     total_reward = 0
 
+    print("Watching trained model...")
     while True:
         env.render()
 
@@ -127,26 +122,64 @@ def watch_trained_model(mdl_q_table):
 
         if done:
             break
+    print("Finished watching trained model...")
 
-    # Close the environment
-    env.close()
+
+def ask_to_save_model(mdl_q_table):
+    while True:
+        save = input("Save model? [y/N]: ")
+        if save in ("", "N", "n"):
+            return
+        elif save in ("Y", "y"):
+            mdl_file = input("Enter model file name: ")
+            np.save(mdl_file, mdl_q_table)
+            return
+        
+        print("Please enter 'y' or 'n'.\n"
+              "Or press ENTER for default 'n'.")
 
 
 def main():
-    while True:
-        train = input("CARTPOLE TESTS\n"
-                  "\n"
-                  "Train Model from scratch? [Y/n]: ")
-        if (train in ["\n", "y", "Y"]):
-            mdl_q_table = train_from_scratch()
-            break
-        elif (train in ["n", "N"]):
-            mdl_q_table = import_model()
-            break
-        else:
-            print("Please enter 'y' or 'n'. Or press enter for default 'y'.")
+    run_app = True
+    while run_app:
+        valid_input = False
+        new_model = False
+        while not valid_input:
+            train = input("==================================\n"
+                          "        CARTPOLE TESTS\n"
+                          "==================================\n"
+                          "\n"
+                          "Train Model from scratch? [Y/n]: ")
+            if train in ["", "y", "Y"]:
+                mdl_q_table = train_from_scratch()
+                new_model = True
+                valid_input = True
+            elif train in ["n", "N"]:
+                mdl_q_table = import_model()
+                valid_input = True
+            else:
+                print("Please enter 'y' or 'n'.\n"
+                      "Or press ENTER for default 'y'.")
 
-    watch_trained_model(mdl_q_table)
+        watch_trained_model(mdl_q_table)
+
+        if new_model:
+            ask_to_save_model(mdl_q_table)
+
+        valid_input = False
+        while not valid_input:
+            rerun = input("Watch a new model? [Y/n]: ")
+            if rerun in ["", "Y", "y"]:
+                valid_input = True
+            elif rerun in ["N", "n"]:
+                run_app = False
+                valid_input = True
+            else:
+                print("Please enter 'y' or 'n'.\n"
+                      "Or press ENTER for default 'y'")
+
+    # Close the environment
+    env.close()
 
 
 if __name__ == "__main__":
