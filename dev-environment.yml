@@ -1,10 +1,10 @@
-name: rl-lab-dev-environment
+name: rl-lab-dev
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - pip
   - python
-  - pre-commit
+  - pygame
   - ruff
-  - pip:
-      - pygame
+  - pre-commit
+  - numpy
