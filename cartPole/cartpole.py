@@ -72,7 +72,7 @@ class CartpoleEnv(Env):
 
         """
         The state of the environment is the position of the cart, the velocity of the cart, the angle of the pole, and the angular velocity of the pole tip
-        
+
         cartPosition: -4.8 to 4.8
         cartVelocity: -Inf to Inf
         poleAngle: -0.418 rad to 0.418 rad
