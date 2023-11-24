@@ -1,5 +1,6 @@
-import os, sys
-import time
+from cartPole.cartpole import CartpoleEnv
+import os
+import sys
 import random
 import numpy as np
 import pygame
@@ -8,17 +9,18 @@ import pygame
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the absolute path to the project's root directory
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
 # Add the project's root directory to sys.path
 sys.path.append(project_root)
 
-from cartPole.cartpole import CartpoleEnv
-
 
 # This function discretizes the observation space into buckets
 def discretize(obs, lower_bounds, upper_bounds, buckets):
-    ratios = [(ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i]) for i, ob in enumerate(obs)]
+    ratios = [
+        (ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i])
+        for i, ob in enumerate(obs)
+    ]
     new_obs = [int(round((buckets[i] - 1) * ratios[i])) for i in range(len(obs))]
     new_obs = [min(buckets[i] - 1, max(0, new_obs[i])) for i in range(len(obs))]
     return tuple(new_obs)
@@ -30,7 +32,12 @@ env = CartpoleEnv("Cartpole")
 upper_bounds = [4.8, 3.4, 0.42, 3.4]
 lower_bounds = [-4.8, -3.4, -0.42, -3.4]
 
-buckets = (1, 1, 6, 5,)
+buckets = (
+    1,
+    1,
+    6,
+    5,
+)
 
 
 def train_from_scratch():
@@ -49,29 +56,33 @@ def train_from_scratch():
 
     print(f"Training model from scratch for {episodes - 1} episodes...")
     for episode in range(episodes):
-        
-        current_state = discretize(env.reset(pygame.HIDDEN), lower_bounds, upper_bounds, buckets)
+        current_state = discretize(
+            env.reset(pygame.HIDDEN), lower_bounds, upper_bounds, buckets
+        )
 
         total_reward = 0
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
 
         while env.running:
-
             exp_tradeoff = random.uniform(0, 1)
 
             if exp_tradeoff > epsilon:
                 action = np.argmax(q_table[current_state])
             else:
                 action = random.choice(env.action_space)
-            
+
             observation, reward, done = env.step(action)
 
             new_state = discretize(observation, lower_bounds, upper_bounds, buckets)
 
             total_reward += reward
-            
-            q_table [current_state][action] += alpha * (reward + gamma * np.max(q_table[new_state]) - q_table[current_state][action])
+
+            q_table[current_state][action] += alpha * (
+                reward
+                + gamma * np.max(q_table[new_state])
+                - q_table[current_state][action]
+            )
 
             current_state = new_state
 
@@ -92,14 +103,17 @@ def import_model():
         try:
             return np.load(mdl_file, allow_pickle=False)
         except OSError:
-            print(f"The input file {mdl_file} doesn't exist "
-                  f"or cannot be read.")
+            print(f"The input file {mdl_file} doesn't exist " f"or cannot be read.")
         except ValueError:
-            print(f"The file {mdl_file} contains an object array, but can't "
-                  f"be read due to allow_pickle=False")
+            print(
+                f"The file {mdl_file} contains an object array, but can't "
+                f"be read due to allow_pickle=False"
+            )
         except EOFError:
-            print(f"All data has already been read from file {mdl_file}.\n"
-                  f"Can't read an empty file.")
+            print(
+                f"All data has already been read from file {mdl_file}.\n"
+                f"Can't read an empty file."
+            )
 
 
 def watch_trained_model(mdl_q_table):
@@ -134,9 +148,8 @@ def ask_to_save_model(mdl_q_table):
             mdl_file = input("Enter model file name: ")
             np.save(mdl_file, mdl_q_table)
             return
-        
-        print("Please enter 'y' or 'n'.\n"
-              "Or press ENTER for default 'n'.")
+
+        print("Please enter 'y' or 'n'.\n" "Or press ENTER for default 'n'.")
 
 
 def main():
@@ -145,11 +158,13 @@ def main():
         valid_input = False
         new_model = False
         while not valid_input:
-            train = input("==================================\n"
-                          "        CARTPOLE TESTS\n"
-                          "==================================\n"
-                          "\n"
-                          "Train Model from scratch? [Y/n]: ")
+            train = input(
+                "==================================\n"
+                "        CARTPOLE TESTS\n"
+                "==================================\n"
+                "\n"
+                "Train Model from scratch? [Y/n]: "
+            )
             if train in ["", "y", "Y"]:
                 mdl_q_table = train_from_scratch()
                 new_model = True
@@ -158,8 +173,7 @@ def main():
                 mdl_q_table = import_model()
                 valid_input = True
             else:
-                print("Please enter 'y' or 'n'.\n"
-                      "Or press ENTER for default 'y'.")
+                print("Please enter 'y' or 'n'.\n" "Or press ENTER for default 'y'.")
 
         watch_trained_model(mdl_q_table)
 
@@ -175,8 +189,7 @@ def main():
                 run_app = False
                 valid_input = True
             else:
-                print("Please enter 'y' or 'n'.\n"
-                      "Or press ENTER for default 'y'")
+                print("Please enter 'y' or 'n'.\n" "Or press ENTER for default 'y'")
 
     # Close the environment
     env.close()

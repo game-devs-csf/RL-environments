@@ -4,7 +4,9 @@ import sys
 # Initialize Pygame
 pygame.init()
 clock = pygame.time.Clock()
-font = pygame.font.Font(None, 36)  # Choose the font for the score, None means default font
+font = pygame.font.Font(
+    None, 36
+)  # Choose the font for the score, None means default font
 
 # Set the frames per second (FPS)
 FPS = 60
@@ -61,7 +63,7 @@ while True:
     if keys[pygame.K_RIGHT] and player2.x + PLAYER_SPEED < WIDTH - PLAYER_SIZE:
         player2.x += PLAYER_SPEED
 
-   # Scoring
+    # Scoring
     if player1.colliderect(flag2):
         score1 += 1
         player1.x = 0

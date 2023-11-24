@@ -1,13 +1,11 @@
-import os, sys
-import time
 import random
 import numpy as np
 import pygame
 
-#import pygame
-#import sys
+# import pygame
+# import sys
 #
-#class Env:
+# class Env:
 #    """
 #        Description:
 #            Base class for environments
@@ -58,18 +56,19 @@ import pygame
 #        sys.exit()
 
 
-class Model():
+class Model:
     """
-        Description:
-            Base class for models
+    Description:
+        Base class for models
 
-        Parameters:
-            modelName (str): The name of the model
-            environment (Env): The environment of the model
+    Parameters:
+        modelName (str): The name of the model
+        environment (Env): The environment of the model
     """
+
     def __init__(self, mdl_name, environment):
-        self.mdlName = mdlName
-        self.environment = environment
+        self.mdlName = mdl_name
+        self.env = environment
         self.upper_bounds = None
         self.lower_bounds = None
         self.buckets = None
@@ -77,14 +76,17 @@ class Model():
 
     def discretize(obs, lower_bounds, upper_bounds, buckets):
         """Discretize the observation space into buckets."""
-        ratios = [(ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i]) for i, ob in enumerate(obs)]
+        ratios = [
+            (ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i])
+            for i, ob in enumerate(obs)
+        ]
         new_obs = [int(round((buckets[i] - 1) * ratios[i])) for i in range(len(obs))]
         new_obs = [min(buckets[i] - 1, max(0, new_obs[i])) for i in range(len(obs))]
         return tuple(new_obs)
 
-    def train_from_scratch():
+    def train_from_scratch(self):
         """Train new model with brand new q_table"""
-        q_table = np.zeros(buckets + (len(env.action_space),))
+        q_table = np.zeros(self.buckets + (len(self.env.action_space),))
 
         episodes = 501
 
@@ -93,45 +95,58 @@ class Model():
 
         # exploration
         epsilon = 1.0
-        min_epsilon = 0.1
+        """ min_epsilon = 0.1
         max_epsilon = 1.0
-        decay = 0.01
+        decay = 0.01 """
 
         print(f"Training model from scratch for {episodes - 1} episodes...")
         for episode in range(episodes):
-            
-            current_state = discretize(env.reset(pygame.HIDDEN), lower_bounds, upper_bounds, buckets)
+            current_state = self.discretize(
+                self.environment.reset(pygame.HIDDEN),
+                self.lower_bounds,
+                self.upper_bounds,
+                self.buckets,
+            )
+            while self.environment.running:
+                total_reward = 0
 
-            total_reward = 0
+            epsilon = self.min_epsilon + (self.max_epsilon - self.min_epsilon) * np.exp(
+                -self.decay * episode
+            )
 
-            epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
-
-            while env.running:
-
+            while self.env.running:
                 exp_tradeoff = random.uniform(0, 1)
 
                 if exp_tradeoff > epsilon:
                     action = np.argmax(q_table[current_state])
                 else:
-                    action = random.choice(env.action_space)
-                
-                observation, reward, done = env.step(action)
+                    action = random.choice(self.env.action_space)
 
-                new_state = discretize(observation, lower_bounds, upper_bounds, buckets)
+                observation, reward, done = self.env.step(action)
+
+                new_state = self.discretize(
+                    observation, self.lower_bounds, self.upper_bounds, self.buckets
+                )
 
                 total_reward += reward
-                
-                q_table [current_state][action] += alpha * (reward + gamma * np.max(q_table[new_state]) - q_table[current_state][action])
+
+                self.q_table[current_state][action] += alpha * (
+                    reward
+                    + gamma * np.max(self.q_table[new_state])
+                    - self.q_table[current_state][action]
+                )
 
                 current_state = new_state
 
                 # env.render()
 
                 if done:
-                    env.running = False
+                    self.env.running = False
 
             if not episode % 100:
-                print(f"Episode: {episode} | Reward: {total_reward} | Epsilon: {epsilon}")
+                print(
+                    f"Episode: {episode} | Reward: {total_reward} | Epsilon: {epsilon}"
+                )
 
         return q_table
 
@@ -141,28 +156,35 @@ class Model():
             try:
                 return np.load(mdl_file, allow_pickle=False)
             except OSError:
-                print(f"The input file {mdl_file} doesn't exist "
-                      f"or cannot be read.")
+                print(f"The input file {mdl_file} doesn't exist " f"or cannot be read.")
             except ValueError:
-                print(f"The file {mdl_file} contains an object array, but can't "
-                      f"be read due to allow_pickle=False")
+                print(
+                    f"The file {mdl_file} contains an object array, but can't "
+                    f"be read due to allow_pickle=False"
+                )
             except EOFError:
-                print(f"All data has already been read from file {mdl_file}.\n"
-                      f"Can't read an empty file.")
+                print(
+                    f"All data has already been read from file {mdl_file}.\n"
+                    f"Can't read an empty file."
+                )
 
-    def watch_trained_model(mdl_q_table):
-        current_state = discretize(env.reset(), lower_bounds, upper_bounds, buckets)
+    def watch_trained_model(self, mdl_q_table):
+        current_state = self.discretize(
+            self.env.reset(), self.lower_bounds, self.upper_bounds, self.buckets
+        )
         total_reward = 0
 
         print("Watching trained model...")
         while True:
-            env.render()
+            self.env.render()
 
             action = np.argmax(mdl_q_table[current_state])
 
-            observation, reward, done = env.step(action)
+            observation, reward, done = self.env.step(action)
 
-            new_state = discretize(observation, lower_bounds, upper_bounds, buckets)
+            new_state = self.discretize(
+                observation, self.lower_bounds, self.upper_bounds, self.buckets
+            )
 
             total_reward += reward
 
@@ -181,6 +203,5 @@ class Model():
                 mdl_file = input("Enter model file name: ")
                 np.save(mdl_file, mdl_q_table)
                 return
-            
-            print("Please enter 'y' or 'n'.\n"
-                  "Or press ENTER for default 'n'.")
+
+            print("Please enter 'y' or 'n'.\n" "Or press ENTER for default 'n'.")
