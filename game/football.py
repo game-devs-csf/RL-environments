@@ -1,6 +1,5 @@
 import pygame
 import sys
-from pygame import Vector2
 
 # Initialize Pygame
 pygame.init()
@@ -11,6 +10,8 @@ PLAYER_SPEED = 5
 PLAYER_SIZE = 40
 BALL_SPEED = 3
 FPS = 60  # Frames per second
+RED = (255, 0, 0)  # RGB color for red
+BLUE = (0, 0, 255)  # RGB color for blue
 
 # Initialize scores
 score1 = 0
@@ -20,8 +21,12 @@ score2 = 0
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Set up the players and the ball
-player1 = pygame.Rect(WIDTH // 2, HEIGHT - 20, PLAYER_SIZE, PLAYER_SIZE)  # Increased size from 10, 10 to 20, 20
-player2 = pygame.Rect(WIDTH // 2, 20, PLAYER_SIZE, PLAYER_SIZE)  # Increased size from 10, 10 to 20, 20
+player1 = pygame.Rect(
+    WIDTH // 2, HEIGHT - 20, PLAYER_SIZE, PLAYER_SIZE
+)  # Increased size from 10, 10 to 20, 20
+player2 = pygame.Rect(
+    WIDTH // 2, 20, PLAYER_SIZE, PLAYER_SIZE
+)  # Increased size from 10, 10 to 20, 20
 ball = pygame.Rect(WIDTH // 2, HEIGHT // 2, 10, 10)
 
 # Set up the direction and speed of the ball
@@ -45,7 +50,7 @@ while True:
     player1_velocity = pygame.Vector2(0, 0)
     player2_velocity = pygame.Vector2(0, 0)
 
-   # Move the players and update their velocities
+    # Move the players and update their velocities
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
         player1.move_ip(-PLAYER_SPEED, 0)
@@ -74,30 +79,30 @@ while True:
         player2_velocity.y = PLAYER_SPEED
 
     # Collide with walls
-    if player1.left < 0: 
+    if player1.left < 0:
         player1.left = 0
         player1_velocity.x *= -1
-    if player1.right > WIDTH: 
+    if player1.right > WIDTH:
         player1.right = WIDTH
         player1_velocity.x *= -1
-    if player1.top < 0: 
+    if player1.top < 0:
         player1.top = 0
         player1_velocity.y *= -1
-    if player1.bottom > HEIGHT: 
+    if player1.bottom > HEIGHT:
         player1.bottom = HEIGHT
         player1_velocity.y *= -1
 
     # Collide with walls
-    if player2.left < 0: 
+    if player2.left < 0:
         player2.left = 0
         player2_velocity.x *= -1
-    if player2.right > WIDTH: 
+    if player2.right > WIDTH:
         player2.right = WIDTH
         player2_velocity.x *= -1
-    if player2.top < 0: 
+    if player2.top < 0:
         player2.top = 0
         player2_velocity.y *= -1
-    if player2.bottom > HEIGHT: 
+    if player2.bottom > HEIGHT:
         player2.bottom = HEIGHT
     player2_velocity.y *= -1
 
@@ -149,8 +154,12 @@ while True:
 
     # Draw everything
     screen.fill((0, 0, 0))
-    pygame.draw.rect(screen, (255, 255, 255), player1)
-    pygame.draw.rect(screen, (255, 255, 255), player2)
+    pygame.draw.rect(
+        screen,
+        RED,
+        player1,
+    )
+    pygame.draw.rect(screen, BLUE, player2)
     pygame.draw.rect(screen, (255, 255, 255), ball)
 
     # Draw scores
@@ -159,8 +168,10 @@ while True:
     screen.blit(text, (20, 20))
 
     # Print velocities
-    print(f"\rPlayer 1 velocity: {player1_velocity} Player 2 velocity: {player2_velocity}", end="")
-    
+    print(
+        f"\rPlayer 1 velocity: {player1_velocity} Player 2 velocity: {player2_velocity}",
+        end="",
+    )
 
     # Flip the display
     pygame.display.flip()
