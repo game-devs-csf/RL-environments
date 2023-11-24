@@ -1,4 +1,6 @@
-import os, sys
+from cartPole.cartpole import CartpoleEnv
+import os
+import sys
 import random
 import numpy as np
 import pygame
@@ -11,8 +13,6 @@ project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
 # Add the project's root directory to sys.path
 sys.path.append(project_root)
-
-from cartPole.cartpole import CartpoleEnv
 
 
 # This function discretizes the observation space into buckets
