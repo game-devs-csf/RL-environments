@@ -37,3 +37,5 @@ Si se modificó algún archivo, tienes que volver a agregar tus archivos con ```
 
 - Intro to RL Barto Sutton - http://incompleteideas.net/book/RLbook2020.pdf
     - [Exercise solutions](https://github.com/LyWangPX/Reinforcement-Learning-2nd-Edition-by-Sutton-Exercise-Solutions/tree/master)
+
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
