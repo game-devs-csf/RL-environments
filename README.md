@@ -28,12 +28,17 @@ Si se modificó algún archivo, tienes que volver a agregar tus archivos con ```
 
 # Recursos RL
 
-## Cursos
+# Cursos
 
-- ****UCL Course on RL - David Silver -**** https://www.davidsilver.uk/teaching/
+- UCL Course on RL - David Silver - https://www.davidsilver.uk/teaching/
 - Huggingface DeepRL course - https://huggingface.co/learn/deep-rl-course/unit0/introduction
+- Practical_RL - https://github.com/yandexdataschool/Practical_RL
 
-## Libros
+# Mate
+
+- 3Blue1Brown Essence of Linear Algebra - https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab
+
+# Libros
 
 - Intro to RL Barto Sutton - http://incompleteideas.net/book/RLbook2020.pdf
     - [Exercise solutions](https://github.com/LyWangPX/Reinforcement-Learning-2nd-Edition-by-Sutton-Exercise-Solutions/tree/master)
