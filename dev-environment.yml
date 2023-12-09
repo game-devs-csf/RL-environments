@@ -1,0 +1,10 @@
+name: rl-lab-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pygame
+  - ruff
+  - pre-commit
+  - numpy
