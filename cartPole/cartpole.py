@@ -1,4 +1,3 @@
-from baseEnv.env import Env
 import pygame
 import random
 import math
@@ -14,6 +13,8 @@ project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
 # Add the project's root directory to sys.path
 sys.path.append(project_root)
+
+from baseEnv.env import Env  # noqa: E402
 
 
 class CartpoleEnv(Env):
