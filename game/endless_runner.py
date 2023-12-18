@@ -125,7 +125,7 @@ while running:
         "Dodges: " + str(dodges), True, (0, 0, 0)
     )  # The color is black
     distance_text = font.render(
-        "Obstacle x: " + str(obstacle_x), True, (0, 0, 0)
+        "Obstacle x: " + str(player_y), True, (0, 0, 0)
     )  # The color is black
 
     # Set the obstacle color based on its y-coordinate
