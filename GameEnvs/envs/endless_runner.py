@@ -7,7 +7,7 @@ from gymnasium import spaces
 
 
 class EndlessRunnerEnv(gym.Env):
-    metadata = {"render.modes": ["human"], "render_fps": 60}
+    metadata = {"render_modes": ["human"], "render_fps": 60}
 
     def __init__(self, render_mode="human"):
         self.window_width = 800
@@ -57,9 +57,6 @@ class EndlessRunnerEnv(gym.Env):
         # Define the score
         self.score = 0
         self.frame_counter = 0
-        self.font = pygame.font.Font(
-            None, 36
-        )  # Choose the font for the score, None means the default font
         # Calculate the offset
         self.offset = self.window_width * 0.05
 
@@ -80,22 +77,22 @@ class EndlessRunnerEnv(gym.Env):
         self.observation_space = spaces.Dict(
             {
                 "player_y": spaces.Box(
-                    low=self.floor_y - self.player_height,
-                    high=300,
+                    low=195,  # Max jump height
+                    high=self.player_y,  # Floor level
                     shape=(1,),
                     dtype=np.float32,
                 ),
                 "obstacle_x": spaces.Box(
-                    low=self.player_x - self.obstacle_width,
-                    high=self.window_width,
+                    low=self.player_x - self.obstacle_width,  # Behind the player
+                    high=self.window_width,  # Starting point
                     shape=(1,),
                     dtype=np.float32,
                 ),
                 "obstacle_y": spaces.Box(
-                    low=self.floor_y - self.obstacle_height,
-                    high=self.floor_y
+                    low=self.floor_y
                     - self.obstacle_height
-                    - self.base_player_height / 1.5,
+                    - self.base_player_height / 1.5,  # Above the floor
+                    high=self.floor_y - self.obstacle_height,  # On the floor
                     shape=(1,),
                     dtype=np.float32,
                 ),
@@ -262,18 +259,6 @@ class EndlessRunnerEnv(gym.Env):
         if self.clock is None and self.render_mode == "human":
             self.clock = pygame.time.Clock()
 
-        # Create the score text
-        score_text = self.font.render(
-            "Score: " + str(self.score), True, (0, 0, 0)
-        )  # The color is black
-        # Create the dodges text
-        dodges_text = self.font.render(
-            "Dodges: " + str(self.dodges), True, (0, 0, 0)
-        )  # The color is black
-        distance_text = self.font.render(
-            "Obstacle x: " + str(self.obstacle_x), True, (0, 0, 0)
-        )  # The color is black
-
         # Set the obstacle color based on its y-coordinate
         if self.obstacle_y == self.floor_y - self.obstacle_height:
             obstacle_color = self.floor_level_color
@@ -302,26 +287,7 @@ class EndlessRunnerEnv(gym.Env):
             self.floor_color,
             (0, self.floor_y, self.window_width, self.floor_height),
         )  # Draw the floor
-        # Draw the score text
-        self.window.blit(
-            score_text, (self.window_width - score_text.get_width() - self.offset, 0)
-        )  # Subtract the offset from the x-coordinate
-        # Draw the dodges text below the score text
-        self.window.blit(
-            dodges_text,
-            (
-                self.window_width - dodges_text.get_width() - self.offset,
-                score_text.get_height(),
-            ),
-        )
-        # Draw the distance text below the dodges text
-        self.window.blit(
-            distance_text,
-            (
-                self.window_width - distance_text.get_width() - self.offset,
-                score_text.get_height() + dodges_text.get_height(),
-            ),
-        )
+
         pygame.display.update()
 
         self.clock.tick(self.metadata["render_fps"])
