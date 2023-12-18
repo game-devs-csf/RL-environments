@@ -36,7 +36,12 @@ jump_force = 20
 obstacle_width = 50
 obstacle_height = 50
 obstacle_x = window_width  # Start from the right edge of the window
-obstacle_y = floor_y - obstacle_height  # Obstacle spawns at the floor level
+obstacle_y = random.choice(
+    [
+        floor_y - obstacle_height,
+        floor_y - obstacle_height - base_player_height / 1.5,
+    ]
+)
 obstacle_speed = 7.5
 
 # Define gravity
@@ -61,6 +66,7 @@ above_floor_color = (135, 206, 235)  # RGB color for sky blue
 # Game loop
 running = True
 clock = pygame.time.Clock()
+framerate = 60
 
 while running:
     for event in pygame.event.get():
@@ -118,6 +124,9 @@ while running:
     dodges_text = font.render(
         "Dodges: " + str(dodges), True, (0, 0, 0)
     )  # The color is black
+    distance_text = font.render(
+        "Obstacle x: " + str(obstacle_x), True, (0, 0, 0)
+    )  # The color is black
 
     # Set the obstacle color based on its y-coordinate
     if obstacle_y == floor_y - obstacle_height:
@@ -145,6 +154,14 @@ while running:
         dodges_text,
         (window_width - dodges_text.get_width() - offset, score_text.get_height()),
     )
+    # Draw the distance text below the dodges text
+    window.blit(
+        distance_text,
+        (
+            window_width - distance_text.get_width() - offset,
+            score_text.get_height() + dodges_text.get_height(),
+        ),
+    )
     pygame.display.update()
 
     # Reset obstacle position
@@ -161,7 +178,7 @@ while running:
             ]
         )
 
-    clock.tick(60)
+    clock.tick(framerate)
 
 # Quit the game
 pygame.quit()
