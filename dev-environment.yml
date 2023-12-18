@@ -8,3 +8,4 @@ dependencies:
   - ruff
   - pre-commit
   - numpy
+  - gymnasium
