@@ -11,7 +11,7 @@ Aquí van los ambientes que se van a usar para el taller y competencia de Reinfo
 
 Para importar las dependencias de desarrollo para armar el taller corre el siguiente comando:
 ```
-conda env create -n rl-lab-dev --file dev-environment.yml
+conda env create --file dev-environment.yml
 ```
 Para activar este ambiente corre:
 ```
