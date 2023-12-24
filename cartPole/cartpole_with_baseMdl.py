@@ -197,7 +197,7 @@ class CartpoleMdl(Mdl):
             environment (CartpoleEnv): environment with which it interacts
         """
         # Sets name and env
-        super.__init__(mdl_name, environment)
+        super().__init__(mdl_name, environment)
         # For discretizing
         self.upper_bounds = [4.8, 3.4, 0.42, 3.4]
         self.lower_bounds = [-4.8, -3.4, -0.42, -3.4]
@@ -218,16 +218,16 @@ class CartpoleMdl(Mdl):
         self.decay = 0.01
 
     def discretize(self):
-        super.discritize()
+        super().discritize()
 
     def train_from_scratch(self):
-        super.train_from_scratch()
+        super().train_from_scratch()
 
     def import_model(self):
-        super.import_model()
+        super().import_model()
 
     def watch_trained_model(self):
-        super.watch_trained_model()
+        super().watch_trained_model()
 
     def ask_to_save_model(self):
-        super.ask_to_save_model()
+        super().ask_to_save_model()
