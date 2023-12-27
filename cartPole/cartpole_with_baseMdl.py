@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 import random
 import math
@@ -217,17 +218,82 @@ class CartpoleMdl(Mdl):
         self.max_epsilon = 1.0
         self.decay = 0.01
 
-    def discretize(self):
-        super().discritize()
-
     def train_from_scratch(self):
-        super().train_from_scratch()
+        """Train new model with brand new q_table"""
+        self.q_table = np.zeros(self.buckets + (len(self.env.action_space),))
 
-    def import_model(self):
-        super().import_model()
+        print(f"Training model from scratch for {self.episodes - 1}" f"episodes...")
+        for episode in range(self.episodes):
+            current_state = self.discretize(
+                self.environment.reset(pygame.HIDDEN),
+                self.lower_bounds,
+                self.upper_bounds,
+                self.buckets,
+            )
+
+            total_reward = 0
+
+            epsilon = self.min_epsilon + (self.max_epsilon - self.min_epsilon) * np.exp(
+                -self.decay * episode
+            )
+
+            while self.env.running:
+                exp_tradeoff = random.uniform(0, 1)
+
+                if exp_tradeoff > epsilon:
+                    action = np.argmax(self.q_table[current_state])
+                else:
+                    action = random.choice(self.env.action_space)
+
+                observation, reward, done = self.env.step(action)
+
+                new_state = self.discretize(
+                    observation, self.lower_bounds, self.upper_bounds, self.buckets
+                )
+
+                total_reward += reward
+
+                self.q_table[current_state][action] += self.alpha * (
+                    reward
+                    + self.gamma * np.max(self.q_table[new_state])
+                    - self.q_table[current_state][action]
+                )
+
+                current_state = new_state
+
+                if done:
+                    self.env.running = False
+
+            if not episode % 100:
+                print(
+                    f"Episode: {episode} | Reward: {total_reward} "
+                    f"| Epsilon: {epsilon}"
+                )
 
     def watch_trained_model(self):
-        super().watch_trained_model()
+        """Watch model in its environment."""
+        current_state = self.discretize(
+            self.env.reset(), self.lower_bounds, self.upper_bounds, self.buckets
+        )
+        total_reward = 0
 
-    def ask_to_save_model(self):
-        super().ask_to_save_model()
+        print("Watching trained model...")
+        while self.env.running:
+            self.env.render()
+
+            action = np.argmax(self.q_table[current_state])
+
+            observation, reward, done = self.env.step(action)
+
+            new_state = self.discretize(
+                observation, self.lower_bounds, self.upper_bounds, self.buckets
+            )
+
+            total_reward += reward
+
+            current_state = new_state
+
+            if done:
+                self.env.running = False
+                print(f"Total Reward: {total_reward}")
+        print("Finished watching trained model...")
