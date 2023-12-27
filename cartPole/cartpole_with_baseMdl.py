@@ -209,7 +209,7 @@ class CartpoleMdl(Mdl):
             5,
         )
         # For training
-        self.pisodes = 501
+        self.episodes = 501
         self.alpha = 0.1
         self.gamma = 0.9
         # For exploration
@@ -225,7 +225,7 @@ class CartpoleMdl(Mdl):
         print(f"Training model from scratch for {self.episodes - 1}" f"episodes...")
         for episode in range(self.episodes):
             current_state = self.discretize(
-                self.environment.reset(pygame.HIDDEN),
+                self.env.reset(pygame.HIDDEN),
                 self.lower_bounds,
                 self.upper_bounds,
                 self.buckets,

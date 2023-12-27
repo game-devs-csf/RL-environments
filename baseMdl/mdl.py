@@ -30,7 +30,7 @@ class Mdl:
         self.max_epsilon = None
         self.decay = None
 
-    def discretize(obs, lower_bounds, upper_bounds, buckets):
+    def discretize(self, obs, lower_bounds, upper_bounds, buckets):
         """Discretize the observation space into buckets."""
         ratios = [
             (ob + abs(lower_bounds[i])) / (upper_bounds[i] - lower_bounds[i])
