@@ -48,11 +48,9 @@ class Mdl:
             mdl_file = input("Enter model file name (.npy): ")
             try:
                 self.q_table = np.load(mdl_file, allow_pickle=False)
+                return
             except OSError:
-                print(
-                    f"The input file {mdl_file}.npy doesn't exist "
-                    f"or cannot be read."
-                )
+                print(f"The input file {mdl_file} doesn't exist " f"or cannot be read.")
             except ValueError:
                 print(
                     f"The file {mdl_file} contains an object array, but can't "
