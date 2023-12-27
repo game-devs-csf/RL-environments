@@ -1,4 +1,3 @@
-from cartPole.cartpole import CartpoleEnv
 import os
 import sys
 import random
@@ -13,6 +12,8 @@ project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
 # Add the project's root directory to sys.path
 sys.path.append(project_root)
+
+from cartPole.cartpole import CartpoleEnv # noqa: E402
 
 
 # This function discretizes the observation space into buckets
