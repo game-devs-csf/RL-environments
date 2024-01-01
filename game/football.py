@@ -6,12 +6,19 @@ pygame.init()
 
 # Set up some constants
 WIDTH, HEIGHT = 640, 480
-PLAYER_SPEED = 5
-PLAYER_SIZE = 40
-BALL_SPEED = 3
 FPS = 60  # Frames per second
-RED = (255, 0, 0)  # RGB color for red
-BLUE = (0, 0, 255)  # RGB color for blue
+# Player constants
+PLAYER_SPEED = 5
+PLAYER_SIZE = 25
+# Ball constants
+BALL_SPEED = 1.5
+BALL_SIZE = 10
+# OneDark theme colors for aesthetic purposes
+BLACK = (40, 44, 52)  # RGB color for black
+RED = (224, 108, 117)  # RGB color for red
+BLUE = (97, 175, 239)  # RGB color for blue
+GREEN = (152, 195, 121)  # RGB color for green
+GREY = (171, 178, 191)  # RGB color for grey
 
 # Initialize scores
 score1 = 0
@@ -22,12 +29,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Set up the players and the ball
 player1 = pygame.Rect(
-    WIDTH // 2, HEIGHT - 20, PLAYER_SIZE, PLAYER_SIZE
+    PLAYER_SIZE // 2, HEIGHT // 2, PLAYER_SIZE, PLAYER_SIZE
 )  # Increased size from 10, 10 to 20, 20
 player2 = pygame.Rect(
-    WIDTH // 2, 20, PLAYER_SIZE, PLAYER_SIZE
+    WIDTH - PLAYER_SIZE // 2, HEIGHT // 2, PLAYER_SIZE, PLAYER_SIZE
 )  # Increased size from 10, 10 to 20, 20
-ball = pygame.Rect(WIDTH // 2, HEIGHT // 2, 10, 10)
+ball = pygame.Rect(WIDTH // 2, HEIGHT // 2, BALL_SIZE, BALL_SIZE)
 
 # Set up the direction and speed of the ball
 ball_velocity = pygame.Vector2(0, 0)
@@ -136,31 +143,27 @@ while True:
             ball_velocity += pygame.Vector2(player2_velocity.x, -player2_velocity.y)
 
     # Apply friction
-    ball_velocity *= 0.99
+    ball_velocity *= 0.75
 
     # Check for scoring
-    if ball.top < 0:
+    if ball.left < 0:
         score1 += 1
         ball.center = (WIDTH // 2, HEIGHT // 2)
         ball_velocity = pygame.Vector2(0, 0)  # Reset ball speed
-        player1.center = (WIDTH // 2, HEIGHT - 20)  # Reset player1 position
-        player2.center = (WIDTH // 2, 20)  # Reset player2 position
-    if ball.bottom > HEIGHT:
+        player1.center = (PLAYER_SIZE // 2, HEIGHT // 2)  # Reset player1 position
+        player2.center = (WIDTH - PLAYER_SIZE // 2, HEIGHT // 2)  # Reset player2 position
+    if ball.right > WIDTH:
         score2 += 1
         ball.center = (WIDTH // 2, HEIGHT // 2)
         ball_velocity = pygame.Vector2(0, -0)  # Reset ball speed
-        player1.center = (WIDTH // 2, HEIGHT - 20)  # Reset player1 position
-        player2.center = (WIDTH // 2, 20)  # Reset player2 position
+        player1.center = (PLAYER_SIZE // 2, HEIGHT // 2)  # Reset player1 position
+        player2.center = (WIDTH - PLAYER_SIZE // 2, HEIGHT // 2)  # Reset player2 position
 
     # Draw everything
-    screen.fill((0, 0, 0))
-    pygame.draw.rect(
-        screen,
-        RED,
-        player1,
-    )
+    screen.fill(BLACK)
+    pygame.draw.rect(screen, RED, player1)
     pygame.draw.rect(screen, BLUE, player2)
-    pygame.draw.rect(screen, (255, 255, 255), ball)
+    pygame.draw.rect(screen, GREY, ball)
 
     # Draw scores
     font = pygame.font.Font(None, 36)
