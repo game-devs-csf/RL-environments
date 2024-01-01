@@ -10,15 +10,25 @@ FPS = 60  # Frames per second
 # Player constants
 PLAYER_SPEED = 5
 PLAYER_SIZE = 25
+
+
+class Colors:
+    """
+    Description:
+        OneDark color palette to be used in the game
+        as RGB (int, int, int) tuples
+    """
+
+    BLACK = (40, 44, 52)
+    RED = (224, 108, 117)
+    BLUE = (97, 175, 239)
+    GREEN = (152, 195, 121)
+    GREY = (171, 178, 191)
+
+
 # Ball constants
 BALL_SPEED = 1.5
 BALL_SIZE = 10
-# OneDark theme colors for aesthetic purposes
-BLACK = (40, 44, 52)  # RGB color for black
-RED = (224, 108, 117)  # RGB color for red
-BLUE = (97, 175, 239)  # RGB color for blue
-GREEN = (152, 195, 121)  # RGB color for green
-GREY = (171, 178, 191)  # RGB color for grey
 
 # Initialize scores
 score1 = 0
@@ -160,10 +170,10 @@ while True:
         player2.center = (WIDTH - PLAYER_SIZE // 2, HEIGHT // 2)  # Reset player2 position
 
     # Draw everything
-    screen.fill(BLACK)
     pygame.draw.rect(screen, RED, player1)
     pygame.draw.rect(screen, BLUE, player2)
-    pygame.draw.rect(screen, GREY, ball)
+    screen.fill(Colors.BLACK)
+    pygame.draw.rect(screen, Colors.GREY, ball)
 
     # Draw scores
     font = pygame.font.Font(None, 36)
