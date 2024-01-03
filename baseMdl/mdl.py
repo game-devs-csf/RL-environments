@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 
 class Mdl:
@@ -29,6 +30,8 @@ class Mdl:
         self.min_epsilon = None
         self.max_epsilon = None
         self.decay = None
+        # For saving and loading models
+        self.models_dir_name = "savedModels"
 
     def discretize(self, obs, lower_bounds, upper_bounds, buckets):
         """Discretize the observation space into buckets."""
@@ -46,6 +49,10 @@ class Mdl:
     def import_model(self):
         while True:
             mdl_file = input("Enter model file name (.npy): ")
+             # Gets the path to the savedModels directory
+            models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), self.models_dir_name)
+            # Gets the path to the saved model file
+            mdl_file = os.path.join(models_dir, mdl_file)
             try:
                 self.q_table = np.load(mdl_file, allow_pickle=False)
                 return
@@ -72,6 +79,12 @@ class Mdl:
                 return
             elif save in ("Y", "y"):
                 mdl_file = input("Enter model file name: ")
+                # Gets the path to the savedModels directory
+                models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), self.models_dir_name)
+                if not os.path.exists(models_dir):
+                    os.makedirs(models_dir)
+                # Gets the path to the saved model file
+                mdl_file = os.path.join(models_dir, mdl_file)
                 np.save(mdl_file, self.q_table)
                 return
 
