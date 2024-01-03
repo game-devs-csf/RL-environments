@@ -12,15 +12,16 @@ FPS = 60  # Frames per second
 class Colors:
     """
     Description:
-        OneDark color palette to be used in the game
-        as RGB (int, int, int) tuples
+        Color palette to be used in the game as RGB (int, int, int) tuples.
     """
 
-    BLACK = (40, 44, 52)
-    RED = (224, 108, 117)
-    BLUE = (97, 175, 239)
-    GREEN = (152, 195, 121)
+    BLACK = (28, 28, 28)
+    RED = (227, 34, 33)
+    GREEN = (3, 192, 60)
+    BLUE = (33, 227, 227)
+    MAGENTA = (215, 108, 224)
     GREY = (171, 178, 191)
+    WHITE = (239, 233, 244)
 
 
 class Player:
