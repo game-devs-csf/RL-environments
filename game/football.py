@@ -336,7 +336,7 @@ class Game:
         self.draw_UI()
 
 
-if __name__ == "__main__":
+def main():
     # Initialize Pygame
     pygame.init()
 
@@ -365,3 +365,7 @@ if __name__ == "__main__":
 
         # Flip the display
         pygame.display.flip()
+
+
+if __name__ == "__main__":
+    main()
