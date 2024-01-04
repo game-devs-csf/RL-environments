@@ -43,6 +43,24 @@ class GameObject:
         pygame.draw.rect(screen, self._color, self._rect)
 
 
+class Pitch(GameObject):
+    """
+    Description:
+        Pitch object where the game is played.
+    Parameters:
+    Class:
+        _COLOR(int, int, int): Displayed color
+    Instance:
+        _rect(pygame.Rect): Rectangular coordinates
+    """
+
+    _COLOR = Colors.GREEN
+
+    def __init__(self, screen):
+        self._rect = screen.get_rect().scale_by(0.8)
+        self._color = Pitch._COLOR
+
+
 class Player(GameObject):
     """
     Description:
@@ -63,12 +81,25 @@ class Player(GameObject):
     _SIZE = 25
     _SPEED = 5
 
-    def __init__(self, color, initial_pos):
+    def __init__(self, pitch, left, right):
+        pitch_rect = pitch.get_rect()
+        if left:
+            self._initial_pos = (
+                pitch_rect.left + Player._SIZE // 2,
+                pitch_rect.centery - Player._SIZE // 2,
+            )
+            self._rect = pygame.Rect(self._initial_pos, (Player._SIZE, Player._SIZE))
+            self._color = Colors.RED
+        elif right:
+            self._initial_pos = (
+                pitch_rect.right - Player._SIZE * 1.5,
+                pitch_rect.centery - Player._SIZE // 2,
+            )
+            self._rect = pygame.Rect(self._initial_pos, (Player._SIZE, Player._SIZE))
+            self._color = Colors.BLUE
+
         self._score = 0
-        self._color = color
         self._velocity = pygame.Vector2()
-        self._initial_pos = initial_pos
-        self._rect = pygame.Rect(self._initial_pos, (Player._SIZE, Player._SIZE))
 
     def reset(self):
         """Reset position and velocity"""
@@ -159,9 +190,12 @@ if __name__ == "__main__":
     # Set up the display
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+    # Set up the pitch
+    pitch = Pitch(screen)
+
     # Set up the players and the ball
-    player1 = Player(Colors.BLUE, (Player._SIZE // 2, HEIGHT // 2))
-    player2 = Player(Colors.RED, (WIDTH - Player._SIZE // 2, HEIGHT // 2))
+    player1 = Player(pitch, 1, 0)
+    player2 = Player(pitch, 0, 1)
     ball = Ball(screen)
     # Create a clock object
     clock = pygame.time.Clock()
@@ -179,7 +213,7 @@ if __name__ == "__main__":
         keys = pygame.key.get_pressed()
 
         player1.move(
-            screen.get_rect(),
+            pitch.get_rect(),
             keys[pygame.K_a],
             keys[pygame.K_d],
             keys[pygame.K_w],
@@ -187,7 +221,7 @@ if __name__ == "__main__":
         )
 
         player2.move(
-            screen.get_rect(),
+            pitch.get_rect(),
             keys[pygame.K_LEFT],
             keys[pygame.K_RIGHT],
             keys[pygame.K_UP],
@@ -195,18 +229,17 @@ if __name__ == "__main__":
         )
 
         ball_rect = ball.get_rect()
+        pitch_rect = pitch.get_rect()
 
         # Move the ball
         ball_rect.move_ip(ball.get_velocity())
 
         # Collide with walls
         ball_x_collision = (
-            ball_rect.left < screen.get_rect().left
-            or ball_rect.right > screen.get_rect().right
+            ball_rect.left < pitch_rect.left or ball_rect.right > pitch_rect.right
         )
         ball_y_collision = (
-            ball_rect.top < screen.get_rect().top
-            or ball_rect.bottom > screen.get_rect().bottom
+            ball_rect.top < pitch_rect.top or ball_rect.bottom > pitch_rect.bottom
         )
         ball.bounce(ball_x_collision, ball_y_collision)
 
@@ -233,20 +266,20 @@ if __name__ == "__main__":
         ball.get_velocity().xy *= 0.95
 
         # Check for scoring
-        if ball.get_rect().left < 0:
+        if ball.get_rect().left < pitch.get_rect().left:
             player2.scored()
             ball.reset()
             player1.reset()
             player2.reset()
-        if ball.get_rect().right > WIDTH:
+        if ball.get_rect().right > pitch.get_rect().right:
             player1.scored()
             ball.reset()
             player1.reset()
             player2.reset()
 
         ball_rect = ball.get_rect()
-        if not screen.get_rect().contains(ball_rect):
-            ball_rect.clamp_ip(screen.get_rect())
+        if not pitch.get_rect().contains(ball_rect):
+            ball_rect.clamp_ip(pitch.get_rect())
 
             for player_rect in [i.get_rect() for i in (player1, player2)]:
                 if ball_rect.colliderect(player_rect):
@@ -262,6 +295,7 @@ if __name__ == "__main__":
 
         # Draw everything
         screen.fill(Colors.BLACK)
+        pitch.draw(screen)
         for player in (player1, player2):
             player.draw(screen)
         ball.draw(screen)
