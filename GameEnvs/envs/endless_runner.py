@@ -275,7 +275,7 @@ class EndlessRunnerEnv(gym.Env):
         # Render the current frame of the environment
         if self.window is None and self.render_mode == "human":
             pygame.init()
-            # pygame.display.init()
+            pygame.display.init()
             self.window = pygame.display.set_mode(
                 (self.window_width, self.window_height)
             )
@@ -295,7 +295,7 @@ class EndlessRunnerEnv(gym.Env):
             self.window,
             self.black,
             (self.player_x, self.player_y, self.player_width, self.player_height),
-        )
+        )  # Draw the player
         pygame.draw.rect(
             self.window,
             obstacle_color,
@@ -305,18 +305,20 @@ class EndlessRunnerEnv(gym.Env):
                 self.obstacle_width,
                 self.obstacle_height,
             ),
-        )
+        )  # Draw the obstacle
         pygame.draw.rect(
             self.window,
             self.floor_color,
             (0, self.floor_y, self.window_width, self.floor_height),
         )  # Draw the floor
 
-        pygame.display.update()
-
+        # pygame.display.update()
+        pygame.event.pump()
         self.clock.tick(self.metadata["render_fps"])
+        pygame.display.flip()
 
     def close(self):
         if self.window is not None:
             # Quit the game
+            pygame.display.quit()
             pygame.quit()
