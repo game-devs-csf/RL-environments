@@ -198,6 +198,144 @@ class Ball(GameObject):
         return self._velocity
 
 
+class Game:
+    """
+    Description:
+        Game object to control all logic aspects regarding collisions,
+        movement, scoring.
+    Parameters:
+        _screen(pygame.Surface): Display on which the game is rendered
+        _pitch(pygame.Rect): Rect object where the game is played
+        _goals(pygame.Rect): Rect objects where the ball is scored
+        _players(list(Player)): List of players objects
+        _ball(Ball): Ball object
+    """
+
+    def __init__(self, screen):
+        """Setup all GameObjects and screen"""
+        self._screen = screen
+        self._pitch = Pitch(screen)
+        self._goals = (Goal(self._pitch, 1, 0), Goal(self._pitch, 0, 1))
+        self._players = (Player(self._pitch, 1, 0), Player(self._pitch, 0, 1))
+        self._ball = Ball(self._pitch)
+
+    def move_players(self):
+        # Move the players and update their velocities
+        # checking for wall collisions
+        keys = pygame.key.get_pressed()
+
+        self._players[0].move(
+            self._pitch.get_rect(),
+            keys[pygame.K_a],
+            keys[pygame.K_d],
+            keys[pygame.K_w],
+            keys[pygame.K_s],
+        )
+
+        self._players[1].move(
+            self._pitch.get_rect(),
+            keys[pygame.K_LEFT],
+            keys[pygame.K_RIGHT],
+            keys[pygame.K_UP],
+            keys[pygame.K_DOWN],
+        )
+
+    def move_ball(self):
+        ball_rect = self._ball.get_rect()
+        pitch_rect = self._pitch.get_rect()
+
+        # Move the ball
+        ball_rect.move_ip(self._ball.get_velocity())
+
+        # Collide with walls
+        ball_x_collision = (
+            ball_rect.left < pitch_rect.left or ball_rect.right > pitch_rect.right
+        )
+        ball_y_collision = (
+            ball_rect.top < pitch_rect.top or ball_rect.bottom > pitch_rect.bottom
+        )
+        self._ball.bounce(ball_x_collision, ball_y_collision)
+
+        # Collide with players
+        for player in self._players:
+            if ball_rect.colliderect(player.get_rect()):
+                if player.get_velocity().length() == 0:
+                    if (
+                        ball_rect.centerx < player.get_rect().centerx
+                    ):  # Ball hit left side of player
+                        self._ball.bounce(1, 0)
+                        ball_rect.right = player.get_rect().left
+                    else:  # Ball hit right side of player
+                        self._ball.bounce(1, 0)
+                        ball_rect.left = player.get_rect().right
+                    self._ball.bounce(0, 1)
+                else:
+                    self._ball.get_velocity().xy += player.get_velocity()
+
+        # Apply friction
+        # TODO: Lower this for more control over ball trayectory
+        # Use high values for "automatic testing" of collisions and ball
+        # movement
+        self._ball.get_velocity().xy *= 0.95
+
+    def check_for_scoring(self):
+        # Check for scoring
+        for i, goal in enumerate(self._goals):
+            if self._ball.get_rect().colliderect(goal.get_rect()):
+                self._ball.reset()
+                for player in self._players:
+                    player.reset()
+
+                self._players[not i].scored()
+
+    def ensure_no_clipping(self):
+        ball_rect = self._ball.get_rect()
+        if not self._pitch.get_rect().contains(ball_rect):
+            ball_rect.clamp_ip(self._pitch.get_rect())
+
+            for player_rect in [i.get_rect() for i in self._players]:
+                if ball_rect.colliderect(player_rect):
+                    if ball_rect.left == self._screen.get_rect().left:
+                        player_rect.left = ball_rect.right
+                    elif ball_rect.right == self._screen.get_rect().right:
+                        player_rect.right = ball_rect.left
+
+                    if ball_rect.top == self._screen.get_rect().top:
+                        player_rect.top = ball_rect.bottom
+                    elif ball_rect.bottom == self._screen.get_rect().bottom:
+                        player_rect.bottom = ball_rect.top
+
+    def draw_GameObjects(self):
+        # Draw everything
+        self._screen.fill(Colors.BLACK)
+
+        self._pitch.draw(self._screen)
+        for goal in self._goals:
+            goal.draw(self._screen)
+        for player in self._players:
+            player.draw(self._screen)
+        self._ball.draw(self._screen)
+
+    def draw_UI(self):
+        # Draw scores
+        font = pygame.font.Font(None, 36)
+        text = font.render(
+            f"Player 1: {self._players[0].get_score()} "
+            f"Player 2: {self._players[1].get_score()}",
+            True,
+            (255, 255, 255),
+        )
+        self._screen.blit(text, (20, 20))
+
+    def step(self):
+        self.move_players()
+        self.move_ball()
+        self.check_for_scoring()
+        self.ensure_no_clipping()
+        self.draw_GameObjects()
+        self.draw_UI()
+
+
 if __name__ == "__main__":
     # Initialize Pygame
     pygame.init()
@@ -209,15 +347,9 @@ if __name__ == "__main__":
     # Set up the display
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    # Set up the pitch
-    pitch = Pitch(screen)
-    goal1 = Goal(pitch, 1, 0)
-    goal2 = Goal(pitch, 0, 1)
+    # Set up the game
+    game = Game(screen)
 
-    # Set up the players and the ball
-    player1 = Player(pitch, 1, 0)
-    player2 = Player(pitch, 0, 1)
-    ball = Ball(screen)
     # Create a clock object
     clock = pygame.time.Clock()
 
@@ -229,115 +361,7 @@ if __name__ == "__main__":
                 print("\nGame Finished")
                 sys.exit()
 
-        # Move the players and update their velocities
-        # checking for wall collisions
-        keys = pygame.key.get_pressed()
-
-        player1.move(
-            pitch.get_rect(),
-            keys[pygame.K_a],
-            keys[pygame.K_d],
-            keys[pygame.K_w],
-            keys[pygame.K_s],
-        )
-
-        player2.move(
-            pitch.get_rect(),
-            keys[pygame.K_LEFT],
-            keys[pygame.K_RIGHT],
-            keys[pygame.K_UP],
-            keys[pygame.K_DOWN],
-        )
-
-        ball_rect = ball.get_rect()
-        pitch_rect = pitch.get_rect()
-
-        # Move the ball
-        ball_rect.move_ip(ball.get_velocity())
-
-        # Collide with walls
-        ball_x_collision = (
-            ball_rect.left < pitch_rect.left or ball_rect.right > pitch_rect.right
-        )
-        ball_y_collision = (
-            ball_rect.top < pitch_rect.top or ball_rect.bottom > pitch_rect.bottom
-        )
-        ball.bounce(ball_x_collision, ball_y_collision)
-
-        # Collide with players
-        for player in (player1, player2):
-            if ball_rect.colliderect(player.get_rect()):
-                if player.get_velocity().length() == 0:
-                    if (
-                        ball_rect.centerx < player.get_rect().centerx
-                    ):  # Ball hit left side of player
-                        ball.bounce(1, 0)
-                        ball_rect.right = player.get_rect().left
-                    else:  # Ball hit right side of player
-                        ball.bounce(1, 0)
-                        ball_rect.left = player.get_rect().right
-                    ball.bounce(0, 1)
-                else:
-                    ball.get_velocity().xy += player.get_velocity()
-
-        # Apply friction
-        # TODO: Lower this for more control over ball trayectory
-        # Use high values for "automatic testing" of collisions and ball
-        # movement
-        ball.get_velocity().xy *= 0.95
-
-        # Check for scoring
-        for i, goal in enumerate((goal1, goal2)):
-            if ball.get_rect().colliderect(goal.get_rect()):
-                ball.reset()
-                for player in (player1, player2):
-                    player.reset()
-
-                if goal == goal1:
-                    player2.scored()
-                else:
-                    player1.scored()
-
-        ball_rect = ball.get_rect()
-        if not pitch.get_rect().contains(ball_rect):
-            ball_rect.clamp_ip(pitch.get_rect())
-
-            for player_rect in [i.get_rect() for i in (player1, player2)]:
-                if ball_rect.colliderect(player_rect):
-                    if ball_rect.left == screen.get_rect().left:
-                        player_rect.left = ball_rect.right
-                    elif ball_rect.right == screen.get_rect().right:
-                        player_rect.right = ball_rect.left
-
-                    if ball_rect.top == screen.get_rect().top:
-                        player_rect.top = ball_rect.bottom
-                    elif ball_rect.bottom == screen.get_rect().bottom:
-                        player_rect.bottom = ball_rect.top
-
-        # Draw everything
-        screen.fill(Colors.BLACK)
-        pitch.draw(screen)
-        for goal in (goal1, goal2):
-            goal.draw(screen)
-        for player in (player1, player2):
-            player.draw(screen)
-        ball.draw(screen)
-
-        # Draw scores
-        font = pygame.font.Font(None, 36)
-        text = font.render(
-            f"Player 1: {player1.get_score()} Player 2: {player2.get_score()}",
-            True,
-            (255, 255, 255),
-        )
-        screen.blit(text, (20, 20))
-
-        # Print velocities
-        print(
-            f"\rPlayer 1 velocity: {player1.get_velocity()} "
-            f"Player 2 velocity: {player2.get_velocity()}",
-            end="     ",
-        )
+        game.step()
 
         # Flip the display
         pygame.display.flip()
