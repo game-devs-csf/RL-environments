@@ -1,13 +1,6 @@
 import pygame
 import sys
 
-# Initialize Pygame
-pygame.init()
-
-# Set up some constants
-WIDTH, HEIGHT = 640, 480
-FPS = 60  # Frames per second
-
 
 class Colors:
     """
@@ -24,7 +17,33 @@ class Colors:
     WHITE = (239, 233, 244)
 
 
-class Player:
+class GameObject:
+    """
+    Description:
+        Displayed game object with rectangular coordinates and color.
+    Parameters:
+        _rect(pygame.Rect): Rectangular coordinates
+        _color(int, int, int): Displayed color
+    """
+
+    def __init__(self):
+        self._rect = None
+        self._color = None
+
+    def get_rect(self):
+        """Return rectangular coordinates."""
+        return self._rect
+
+    def get_color(self):
+        """Return displayed color."""
+        return self._color
+
+    def draw(self, screen):
+        """Draw GameObject on the screen"""
+        pygame.draw.rect(screen, self._color, self._rect)
+
+
+class Player(GameObject):
     """
     Description:
         Player in the field capable of moving in 8 directions while inside the
@@ -34,11 +53,11 @@ class Player:
         _SIZE(int): side length
         _SPEED(float): movement speed on the pitch
     Instance:
-        _score(int): accumulated score
+        _rect(pygame.Rect): rectangular coordinates
         _color(int, int, int): displayed color
+        _score(int): accumulated score
         _velocity(pygame.Vector2): velocity vector for player movement
         _initial_pos(int, int): initial position at kick-off
-        _rect(pygame.Rect): rectangular coordinates
     """
 
     _SIZE = 25
@@ -79,20 +98,12 @@ class Player:
         """Return player score"""
         return self._score
 
-    def get_color(self):
-        """Return player color"""
-        return self._color
-
-    def get_rect(self):
-        """Return player coordinates"""
-        return self._rect
-
     def get_velocity(self):
         """Return player velocity"""
         return self._velocity
 
 
-class Ball:
+class Ball(GameObject):
     """
     Description:
         Ball to be moved by the players and used to score goals.
@@ -136,16 +147,15 @@ class Ball:
         """Return ball velocity"""
         return self._velocity
 
-    def get_color(self):
-        """Return ball color"""
-        return self._color
-
-    def get_rect(self):
-        """Return ball rectangular coordinates"""
-        return self._rect
-
 
 if __name__ == "__main__":
+    # Initialize Pygame
+    pygame.init()
+
+    # Set up some constants
+    WIDTH, HEIGHT = 640, 480
+    FPS = 60  # Frames per second
+
     # Set up the display
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -252,9 +262,9 @@ if __name__ == "__main__":
 
         # Draw everything
         screen.fill(Colors.BLACK)
-        pygame.draw.rect(screen, player1.get_color(), player1.get_rect())
-        pygame.draw.rect(screen, player2.get_color(), player2.get_rect())
-        pygame.draw.rect(screen, ball.get_color(), ball.get_rect())
+        for player in (player1, player2):
+            player.draw(screen)
+        ball.draw(screen)
 
         # Draw scores
         font = pygame.font.Font(None, 36)
