@@ -61,6 +61,25 @@ class Pitch(GameObject):
         self._color = Pitch._COLOR
 
 
+class Goal(GameObject):
+    """
+    Description:
+        Goald object where the ball is scored.
+    Parameters:
+        _rect(pygame.Rect): Rectangular coordinates
+        _side(pygame.Rect): Side of the pitch the goal is in
+        _color(int, int, int): Displayed color
+    """
+
+    def __init__(self, pitch, left, right):
+        self._rect = pitch.get_rect().scale_by(1 / 16, 1 / 4)
+        if left:
+            self._rect.right = pitch.get_rect().left
+        elif right:
+            self._rect.left = pitch.get_rect().right
+        self._color = Colors.GREY
+
+
 class Player(GameObject):
     """
     Description:
@@ -192,6 +211,8 @@ if __name__ == "__main__":
 
     # Set up the pitch
     pitch = Pitch(screen)
+    goal1 = Goal(pitch, 1, 0)
+    goal2 = Goal(pitch, 0, 1)
 
     # Set up the players and the ball
     player1 = Player(pitch, 1, 0)
@@ -266,16 +287,16 @@ if __name__ == "__main__":
         ball.get_velocity().xy *= 0.95
 
         # Check for scoring
-        if ball.get_rect().left < pitch.get_rect().left:
-            player2.scored()
-            ball.reset()
-            player1.reset()
-            player2.reset()
-        if ball.get_rect().right > pitch.get_rect().right:
-            player1.scored()
-            ball.reset()
-            player1.reset()
-            player2.reset()
+        for i, goal in enumerate((goal1, goal2)):
+            if ball.get_rect().colliderect(goal.get_rect()):
+                ball.reset()
+                for player in (player1, player2):
+                    player.reset()
+
+                if goal == goal1:
+                    player2.scored()
+                else:
+                    player1.scored()
 
         ball_rect = ball.get_rect()
         if not pitch.get_rect().contains(ball_rect):
@@ -296,6 +317,8 @@ if __name__ == "__main__":
         # Draw everything
         screen.fill(Colors.BLACK)
         pitch.draw(screen)
+        for goal in (goal1, goal2):
+            goal.draw(screen)
         for player in (player1, player2):
             player.draw(screen)
         ball.draw(screen)
