@@ -7,9 +7,9 @@ from gymnasium import spaces
 
 
 class EndlessRunnerEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 60, "obstacle_x_bins": 75}
+    metadata = {"render_modes": ["human"], "render_fps": 60}
 
-    def __init__(self, render_mode="human"):
+    def __init__(self, render_mode="human", obstacle_x_bins=76):
         self.window_width = 800
         self.window_height = 400
 
@@ -71,33 +71,21 @@ class EndlessRunnerEnv(gym.Env):
 
         # Observation space
         self.player_state = 0  # 0: standing, 1: ducking, 2: jumping
-        self.obstacle_height_to_binary = 0  # 0: floor, 1: above floor
-        # The obstacle_x goes from window_width (800 for now) to 50 (player_x - obstacle_width)
-        # Try different bin sizes for the obstacle_x
-        self.observation_space = spaces.Dict(
-            {
-                "player_state": spaces.Discrete(
-                    3
-                ),  # 0: standing, 1: ducking, 2: jumping
-                "obstacle_x": spaces.Box(
-                    low=self.player_x - self.obstacle_width,  # Behind the player
-                    high=self.window_width,  # Starting point
-                    shape=(1,),
-                    dtype=np.float32,
-                ),
-                "obstacle_height": spaces.Discrete(2),  # 0: floor, 1: above floor
-            }
-        )
 
+        self.obstacle_x_bins = obstacle_x_bins
+
+        # The obstacle_x goes from window_width (800) to 50 (player_x - obstacle_width)
+        # Try different bin sizes for the obstacle_x
+        self.observation_space = spaces.Tuple(
+            (
+                spaces.Discrete(
+                    2
+                ),  # For the obstacle_height (0: floor, 1: above floor)
+                spaces.Discrete(obstacle_x_bins),
+            ),  # For the obstacle_x (binned into n bins)
+        )
         # Action space
         self.action_space = spaces.Discrete(3)  # 0: do nothing, 1: jump, 2: duck
-
-        # Action to keycode mapping
-        self.action_to_keycode = {
-            0: None,
-            1: pygame.K_SPACE,
-            2: pygame.K_DOWN,
-        }
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -119,14 +107,17 @@ class EndlessRunnerEnv(gym.Env):
         obstacle_x_bins = np.linspace(
             self.player_x - self.obstacle_width,
             self.window_width,
-            self.metadata["obstacle_x_bins"],
+            self.obstacle_x_bins,
         )
-        obstacle_x_binned = np.digitize(self.obstacle_x, obstacle_x_bins)
-        return {
-            "player_state": self.player_state,  # 0: standing, 1: ducking, 2: jumping
-            "obstacle_x": obstacle_x_binned,
-            "obstacle_height": self.obstacle_height_to_binary,  # 0: floor, 1: above floor
-        }
+        # Get the index of the bin that the obstacle_x falls into
+        obstacle_x_binned_index = np.digitize(self.obstacle_x, obstacle_x_bins)
+
+        # Convert the obstacle_y to binary (0: floor, 1: above floor)
+        obstacle_y_to_binary = (
+            0 if self.obstacle_y == self.floor_y - self.obstacle_height else 1
+        )
+
+        return [obstacle_y_to_binary, obstacle_x_binned_index]
 
     def _get_info(self):
         return {"score": self.score, "dodges": self.dodges}
@@ -228,26 +219,18 @@ class EndlessRunnerEnv(gym.Env):
                 ]
             )
 
-            # Convert the obstacle_y to binary
-            if (
-                self.obstacle_y == self.floor_y - self.obstacle_height
-            ):  # If the obstacle is on the floor
-                self.obstacle_height_to_binary = 0
-            else:  # If the obstacle is above the floor
-                self.obstacle_height_to_binary = 1
-
             # Determine the state of the player (jumping, ducking, standing)
-            if (
-                self.player_y == self.floor_y - self.player_height
-            ):  # If the player is standing
-                self.player_state = 0  # Standing
-            elif (
-                self.player_y
-                < self.floor_y - self.player_height - self.base_player_height / 1.5
-            ):  # If the player is ducking
-                self.player_state = 1  # Ducking
-            else:  # If the player is jumping
-                self.player_state = 2  # Jumping
+            # if (
+            #     self.player_y == self.floor_y - self.player_height
+            # ):  # If the player is standing
+            #     self.player_state = 0  # Standing
+            # elif (
+            #     self.player_y
+            #     < self.floor_y - self.player_height - self.base_player_height / 1.5
+            # ):  # If the player is ducking
+            #     self.player_state = 1  # Ducking
+            # else:  # If the player is jumping
+            #     self.player_state = 2  # Jumping
 
         observation = self._get_obs()
 
