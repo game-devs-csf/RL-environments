@@ -10,3 +10,8 @@ dependencies:
   - numpy
   - gymnasium
   - ipykernel
+  - tqdm
+  - ipywidgets
+  - matplotlib
+  - pandas
+  - ipympl
