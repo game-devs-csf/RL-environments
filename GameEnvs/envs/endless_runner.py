@@ -7,7 +7,7 @@ from gymnasium import spaces
 
 
 class EndlessRunnerEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 60}
+    metadata = {"render_modes": ["human", "none"], "render_fps": 60}
 
     def __init__(self, render_mode="human", obstacle_x_bins=76):
         self.window_width = 800
@@ -70,20 +70,23 @@ class EndlessRunnerEnv(gym.Env):
         self.framerate = 60
 
         # Observation space
-        self.player_state = 0  # 0: standing, 1: ducking, 2: jumping
+        self.player_state = (
+            0  # 0: standing, 1: ducking, 2: ducking and jumping, 3: jumping
+        )
+
+        self.possible_obstacle_heights = 2
+        self.posible_player_states = 4
 
         self.obstacle_x_bins = obstacle_x_bins
 
-        # The obstacle_x goes from window_width (800) to 50 (player_x - obstacle_width)
-        # Try different bin sizes for the obstacle_x
-        self.observation_space = spaces.Tuple(
-            (
-                spaces.Discrete(
-                    2
-                ),  # For the obstacle_height (0: floor, 1: above floor)
-                spaces.Discrete(obstacle_x_bins),
-            ),  # For the obstacle_x (binned into n bins)
+        # The observation space + 2 (for the bin where the obstacle_x is 800)
+        self.observation_space = spaces.Discrete(
+            obstacle_x_bins
+            * self.possible_obstacle_heights
+            * self.posible_player_states
+            + 1
         )
+
         # Action space
         self.action_space = spaces.Discrete(3)  # 0: do nothing, 1: jump, 2: duck
 
@@ -99,6 +102,16 @@ class EndlessRunnerEnv(gym.Env):
         """
         self.window = None
         self.clock = None
+
+    def calculate_bin_index(self, x_bin, y_bin, my_state):
+        x_bins = self.obstacle_x_bins
+        y_bins = (
+            self.possible_obstacle_heights
+        )  # 2 bins for the obstacle_y. 0: floor, 1: above floor
+
+        index = x_bin + (y_bin * x_bins) + (my_state * x_bins * y_bins)
+
+        return index
 
     def _get_obs(
         self,
@@ -117,7 +130,31 @@ class EndlessRunnerEnv(gym.Env):
             0 if self.obstacle_y == self.floor_y - self.obstacle_height else 1
         )
 
-        return [obstacle_y_to_binary, obstacle_x_binned_index]
+        # Get the player_state (0: standing, 1: ducking, 2: ducking and jumping, 3: jumping)
+        if self.player_y == self.floor_y - self.player_height:  # Standing
+            self.player_state = 0
+        elif (
+            self.player_height == self.ducking_height
+            and self.player_y >= self.floor_y - self.player_height
+        ):  # Ducking and not jumping
+            self.player_state = 1
+        elif (
+            self.player_height == self.ducking_height
+            and self.player_y <= self.floor_y - self.player_height
+        ):  # Ducking and jumping
+            self.player_state = 2
+        elif (
+            self.player_height != self.ducking_height
+            and self.player_y <= self.floor_y - self.player_height
+        ):  # Jumping and not ducking
+            self.player_state = 3
+
+        # Get the index of the q-table
+        q_table_index = self.calculate_bin_index(
+            obstacle_x_binned_index, obstacle_y_to_binary, self.player_state
+        )
+
+        return q_table_index
 
     def _get_info(self):
         return {"score": self.score, "dodges": self.dodges}
@@ -155,8 +192,8 @@ class EndlessRunnerEnv(gym.Env):
         # Perform one step in the environment based on the given action
         reward = 0
         terminated = False
+
         # Move the player
-        # keys = pygame.key.get_pressed()
         if (
             action == 1 and self.player_y == self.floor_y - self.player_height
         ):  # Only allow jumping when on the floor
@@ -187,7 +224,7 @@ class EndlessRunnerEnv(gym.Env):
                 self.player_y + self.player_height > self.obstacle_y
                 and self.player_y < self.obstacle_y + self.obstacle_height
             ):
-                print("Game Over")
+                # print("Game Over")
                 reward = -1
                 terminated = True
 
@@ -218,19 +255,6 @@ class EndlessRunnerEnv(gym.Env):
                     self.floor_y - self.obstacle_height - self.base_player_height / 1.5,
                 ]
             )
-
-            # Determine the state of the player (jumping, ducking, standing)
-            # if (
-            #     self.player_y == self.floor_y - self.player_height
-            # ):  # If the player is standing
-            #     self.player_state = 0  # Standing
-            # elif (
-            #     self.player_y
-            #     < self.floor_y - self.player_height - self.base_player_height / 1.5
-            # ):  # If the player is ducking
-            #     self.player_state = 1  # Ducking
-            # else:  # If the player is jumping
-            #     self.player_state = 2  # Jumping
 
         observation = self._get_obs()
 
@@ -294,6 +318,18 @@ class EndlessRunnerEnv(gym.Env):
             self.floor_color,
             (0, self.floor_y, self.window_width, self.floor_height),
         )  # Draw the floor
+
+        # Create the score text
+        font = pygame.font.SysFont("Arial", 30)
+
+        # Create the dodges text
+        dodges_text = font.render("Dodges: " + str(self.dodges), True, self.black)
+
+        # Draw the dodges text below the score text
+        self.window.blit(
+            dodges_text,
+            (self.window_width - dodges_text.get_width() - self.offset, 0),
+        )
 
         # pygame.display.update()
         pygame.event.pump()
