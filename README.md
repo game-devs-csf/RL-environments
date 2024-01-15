@@ -26,6 +26,17 @@ pre-commit
 ```
 Si se modificó algún archivo, tienes que volver a agregar tus archivos con ```git add``` y ya debería estar listo para que le hagas commit.
 
+# Crear el paquete con el ambiente de Gymnasium
+
+Para instalar el paquete de gymnasium primero tenemos que ir al directorio de GameEnvs haciendo
+```
+cd GameEnvs
+```
+Una vez ahí, corremos el siguiente commando para instalarlo, lo que nos permitirá llamarlo posteriormente
+```
+pip install -e .
+```
+
 # Recursos RL
 
 # Cursos
